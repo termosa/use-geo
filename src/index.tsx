@@ -1,23 +1,24 @@
 import * as React from 'react';
+import useDefer, { Status } from 'use-defer';
+import getCurrentPosition from './getCurrentPosition';
 
-export const useMyHook = () => {
-  let [{
-    counter
-  }, setState] = React.useState<{
-    counter: number;
-  }>({
-    counter: 0
-  });
+export const useGeo = (immediate: boolean | PositionOptions = true) => {
+  const immediateArguments = React.useMemo((): [PositionOptions] | [] | undefined => {
+    if (!immediate) return undefined;
+    if (typeof immediate === 'boolean') return [];
+    return [immediate];
+  }, [immediate]);
 
-  React.useEffect(() => {
-    let interval = window.setInterval(() => {
-      counter++;
-      setState({counter})
-    }, 1000)
-    return () => {
-      window.clearInterval(interval);
-    };
-  }, []);
+  const request = useDefer<Position, Error>(getCurrentPosition, [], immediateArguments);
 
-  return counter;
+  return {
+    status: request.status,
+    position: request.value,
+    error: request.error,
+    request: request.execute,
+  };
 };
+
+export default useGeo;
+
+export { Status, getCurrentPosition };

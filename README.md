@@ -13,18 +13,32 @@ npm install --save use-geo
 ## Usage
 
 ```tsx
-import * as React from 'react'
+import * as React from 'react';
 
-import { useMyHook } from 'use-geo'
+import useGeo from 'use-geo';
+// Or import { useGeo } from 'use-geo';
 
-const Example = () => {
-  const example = useMyHook()
+const stringifyResults = (status, position, error) => {
+  if (error) return `Error(${error.message})`;
+  if (position) return `{\n  lat: ${position.coords.latitude},\n  long: ${position.coords.longitude}\n}`;
+  return status;
+};
+
+export default () => {
+  const { status, position, error, request } = useGeo(/* immediate flag (boolean) or PositionOptions object */);
+
   return (
     <div>
-      {example}
+      <input
+        type="button"
+        value="reload"
+        onClick={request}
+        disabled={status === Status.PENDING}
+      />
+      <pre>useGeo(): {stringifyResults(status, position, error)}</pre>
     </div>
-  )
-}
+  );
+};
 ```
 
 ## License

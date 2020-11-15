@@ -1,7 +1,7 @@
 {
   "name": "use-geo",
   "version": "1.0.0",
-  "description": "Make use of browser geolocation API",
+  "description": "Make use of browser geo location API",
   "author": "termosa",
   "license": "MIT",
   "repository": "termosa/use-geo",
@@ -22,7 +22,9 @@
     "predeploy": "cd example && npm install && npm run build",
     "deploy": "gh-pages -d example/build"
   },
-  "dependencies": {},
+  "dependencies": {
+    "use-defer": "^2.0.0"
+  },
   "peerDependencies": {
     "react": "^16.9.0"
   },

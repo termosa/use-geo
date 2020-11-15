@@ -1,29 +1,116 @@
-import { useMyHook } from './'
+import useGeo, { Status } from './'
 import { renderHook, act } from "@testing-library/react-hooks";
 
-// mock timer using jest
-jest.useFakeTimers();
+const position = ({
+  latitude = 42.00000001,
+  longitude = 42.00000002,
+  altitude = null,
+  accuracy = 4000,
+  altitudeAccuracy = null,
+  heading = null,
+  speed = null,
+  timestamp = 1605463861229,
+} = {}) => ({
+  coords: { latitude, longitude, altitude, accuracy, altitudeAccuracy, heading, speed },
+  timestamp,
+});
 
-describe('useMyHook', () => {
-  it('updates every second', () => {
-    const { result } = renderHook(() => useMyHook());
+describe('useGeo', () => {
+  const wait = () => act(() => Promise.resolve());
 
-    expect(result.current).toBe(0);
+  let geolocation = global.navigator.geolocation;
 
-    // Fast-forward 1sec
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-
-    // Check after total 1 sec
-    expect(result.current).toBe(1);
-
-    // Fast-forward 1 more sec
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-
-    // Check after total 2 sec
-    expect(result.current).toBe(2);
+  beforeEach(() => {
+    // @ts-ignore: need to rewrite readonly property
+    global.navigator.geolocation = {
+      getCurrentPosition: jest.fn()
+        .mockImplementationOnce(success => { success(position()) }),
+      watchPosition: jest.fn(),
+    };
   })
-})
+
+  afterEach(() => {
+    // @ts-ignore: need to rewrite readonly property
+    global.navigator.geolocation = geolocation;
+  });
+
+  it('loads location', async () => {
+    const { result } = renderHook(() => useGeo());
+
+    expect(result.current.status).toBe(Status.PENDING);
+    expect(result.current.position).toBe(undefined);
+    expect(result.current.error).toBe(undefined);
+    expect(typeof result.current.request).toBe('function');
+
+    await wait();
+
+    expect(result.current.status).toBe(Status.SUCCESS);
+    expect(result.current.position).toStrictEqual(position());
+    expect(result.current.error).toBe(undefined);
+  });
+
+  it('loads location on request', async () => {
+    const { result } = renderHook(() => useGeo(false));
+
+    expect(result.current.status).toBe(Status.IDLE);
+    expect(result.current.position).toBe(undefined);
+    expect(result.current.error).toBe(undefined);
+    expect(typeof result.current.request).toBe('function');
+
+    await wait();
+
+    expect(result.current.status).toBe(Status.IDLE);
+    expect(result.current.position).toBe(undefined);
+    expect(result.current.error).toBe(undefined);
+
+    act(() => { result.current.request() });
+
+    expect(result.current.status).toBe(Status.PENDING);
+    expect(result.current.position).toBe(undefined);
+    expect(result.current.error).toBe(undefined);
+
+    await wait();
+
+    expect(result.current.status).toBe(Status.SUCCESS);
+    expect(result.current.position).toStrictEqual(position());
+    expect(result.current.error).toBe(undefined);
+  });
+
+  it('can refresh position', async () => {
+    const { result } = renderHook(() => useGeo());
+
+    await wait();
+
+    expect(result.current.status).toBe(Status.SUCCESS);
+    expect(result.current.position).toStrictEqual(position());
+    expect(result.current.error).toBe(undefined);
+
+    global.navigator.geolocation.getCurrentPosition =
+      jest.fn().mockImplementationOnce(success => success(position({ accuracy: 500 })));
+
+    act(() => { result.current.request() });
+
+    expect(result.current.status).toBe(Status.PENDING);
+    expect(result.current.position).toStrictEqual(position());
+    expect(result.current.error).toBe(undefined);
+
+    await wait();
+
+    expect(result.current.status).toBe(Status.SUCCESS);
+    expect(result.current.position).toStrictEqual(position({ accuracy: 500 }));
+    expect(result.current.error).toBe(undefined);
+  });
+
+  it('handle failure', async () => {
+    global.navigator.geolocation.getCurrentPosition =
+      jest.fn().mockImplementationOnce((...args) => args[1]('Failed'));
+
+    const { result } = renderHook(() => useGeo(false));
+
+    await act(() => result.current.request().then(() => {}, () => {}));
+
+    expect(result.current.status).toBe(Status.ERROR);
+    expect(result.current.position).toBe(undefined);
+    expect(result.current.error).toBe('Failed');
+  });
+});
