@@ -1,5 +1,5 @@
 import React from 'react';
-import useGeo, { Status } from 'use-geo';
+import { useGeo, Status } from 'use-geo';
 import { version } from 'use-geo/package.json';
 
 const stringify = value => JSON.stringify(value, null, 2);

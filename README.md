@@ -1,6 +1,6 @@
 # use-geo
 
-> Make use of browser geolocation API
+> Make use of browser geo location API
 
 [![NPM](https://img.shields.io/npm/v/use-geo.svg)](https://www.npmjs.com/package/use-geo) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
@@ -12,11 +12,13 @@ npm install --save use-geo
 
 ## Usage
 
+### Manual position request
+
 ```tsx
 import * as React from 'react';
 
-import useGeo from 'use-geo';
-// Or import { useGeo } from 'use-geo';
+import { useGeo } from 'use-geo';
+// Or import useGeo from 'use-geo';
 
 const stringifyResults = (status, position, error) => {
   if (error) return `Error(${error.message})`;
@@ -36,6 +38,36 @@ export default () => {
         disabled={status === Status.PENDING}
       />
       <pre>useGeo(): {stringifyResults(status, position, error)}</pre>
+    </div>
+  );
+};
+```
+
+### Watching position changes
+
+```tsx
+import * as React from 'react';
+
+import { useGeoWatch } from 'use-geo';
+
+const stringifyResults = (position, error) => {
+  if (error) return `Error(${error.message})`;
+  if (position) return `{\n  lat: ${position.coords.latitude},\n  long: ${position.coords.longitude}\n}`;
+  return 'No results';
+};
+
+export default () => {
+  const { position, error, watching, watch, unwatch } = useGeoWatch(/* immediate flag (boolean) or PositionOptions object */);
+
+  return (
+    <div>
+      {watching ? 'watching' : 'not watching'}
+      <input
+        type="button"
+        value={watching ? 'stop' : 'start'}
+        onClick={watching ? unwatch : watch}
+      />
+      <pre>useGeo(): {stringifyResults(position, error)}</pre>
     </div>
   );
 };
