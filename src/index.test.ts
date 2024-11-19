@@ -1,4 +1,4 @@
-import { useGeo, useGeoWatch, Status } from './'
+import { useGeo, useGeoWatch, UseGeoStatus } from './'
 import { renderHook, act } from "@testing-library/react-hooks";
 
 const position = ({
@@ -44,14 +44,14 @@ describe('useGeo', () => {
   it('loads location', async () => {
     const { result } = renderHook(() => useGeo());
 
-    expect(result.current.status).toBe(Status.PENDING);
+    expect(result.current.status).toBe(UseGeoStatus.Pending);
     expect(result.current.position).toBe(undefined);
     expect(result.current.error).toBe(undefined);
     expect(result.current.request).toBeInstanceOf(Function);
 
     await wait();
 
-    expect(result.current.status).toBe(Status.SUCCESS);
+    expect(result.current.status).toBe(UseGeoStatus.Completed);
     expect(result.current.position).toStrictEqual(position());
     expect(result.current.error).toBe(undefined);
   });
@@ -59,26 +59,26 @@ describe('useGeo', () => {
   it('loads location on request', async () => {
     const { result } = renderHook(() => useGeo(false));
 
-    expect(result.current.status).toBe(Status.IDLE);
+    expect(result.current.status).toBe(UseGeoStatus.Idle);
     expect(result.current.position).toBe(undefined);
     expect(result.current.error).toBe(undefined);
     expect(result.current.request).toBeInstanceOf(Function);
 
     await wait();
 
-    expect(result.current.status).toBe(Status.IDLE);
+    expect(result.current.status).toBe(UseGeoStatus.Idle);
     expect(result.current.position).toBe(undefined);
     expect(result.current.error).toBe(undefined);
 
     act(() => { result.current.request() });
 
-    expect(result.current.status).toBe(Status.PENDING);
+    expect(result.current.status).toBe(UseGeoStatus.Pending);
     expect(result.current.position).toBe(undefined);
     expect(result.current.error).toBe(undefined);
 
     await wait();
 
-    expect(result.current.status).toBe(Status.SUCCESS);
+    expect(result.current.status).toBe(UseGeoStatus.Completed);
     expect(result.current.position).toStrictEqual(position());
     expect(result.current.error).toBe(undefined);
   });
@@ -88,7 +88,7 @@ describe('useGeo', () => {
 
     await wait();
 
-    expect(result.current.status).toBe(Status.SUCCESS);
+    expect(result.current.status).toBe(UseGeoStatus.Completed);
     expect(result.current.position).toStrictEqual(position());
     expect(result.current.error).toBe(undefined);
 
@@ -97,13 +97,13 @@ describe('useGeo', () => {
 
     act(() => { result.current.request() });
 
-    expect(result.current.status).toBe(Status.PENDING);
+    expect(result.current.status).toBe(UseGeoStatus.Pending);
     expect(result.current.position).toStrictEqual(position());
     expect(result.current.error).toBe(undefined);
 
     await wait();
 
-    expect(result.current.status).toBe(Status.SUCCESS);
+    expect(result.current.status).toBe(UseGeoStatus.Completed);
     expect(result.current.position).toStrictEqual(position({ accuracy: 500 }));
     expect(result.current.error).toBe(undefined);
   });
@@ -116,7 +116,7 @@ describe('useGeo', () => {
 
     await act(() => result.current.request().then(() => {}, () => {}));
 
-    expect(result.current.status).toBe(Status.ERROR);
+    expect(result.current.status).toBe(UseGeoStatus.Failed);
     expect(result.current.position).toBe(undefined);
     expect(result.current.error).toBe('Failed');
   });

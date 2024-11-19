@@ -1,5 +1,7 @@
 import * as React from 'react';
-import useDefer, { Status } from 'use-defer';
+import useRequest, { UseRequestStatus } from 'use-request';
+
+const UseGeoStatus = UseRequestStatus;
 
 const normalize = (position: Position) => ({
   coords: {
@@ -56,16 +58,22 @@ export const useGeo = (immediateOrOptions: boolean | PositionOptions = true) => 
     return [immediateOrOptions];
   }, [immediateOrOptions]);
 
-  const request = useDefer<Position, PositionError>(() => getCurrentPosition().then(normalize), [], immediateArguments);
+  const request = useRequest<Position, PositionError>(() => getCurrentPosition().then(normalize), immediateArguments);
 
   return {
-    status: request.status,
     position: request.value,
     error: request.error,
+
+    status: request.status,
+    idle: request.idle,
+    pending: request.pending,
+    completed: request.completed,
+    failed: request.failed,
+
     request: request.execute,
   };
 };
 
 export default useGeo;
 
-export { Status };
+export { UseGeoStatus };

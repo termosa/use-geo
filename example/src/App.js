@@ -1,6 +1,6 @@
 import React from 'react';
-import { useGeo, Status } from 'use-geo';
-import { version } from 'use-geo/package.json';
+import { useGeo, UseGeoStatus } from 'use-geo';
+import pkg from 'use-geo/package.json';
 
 const stringify = value => JSON.stringify(value, null, 2);
 const stringifyError = error =>
@@ -9,17 +9,15 @@ const stringifyError = error =>
 export default () => {
   const { status, position, error, request } = useGeo();
 
-  const reload = () => { request() };
-
   return (
     <div className="App">
-      <h1>use-geo@{version}</h1>
+      <h1>use-geo@{pkg.version}</h1>
       <p>
         <input
           type="button"
-          onClick={reload}
+          onClick={request}
           value="reload"
-          disabled={status === Status.PENDING}
+          disabled={status === UseGeoStatus.Pending}
         />
       </p>
       <pre>useGeo(): {error ? stringifyError(error) : stringify(position)}</pre>
