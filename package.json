@@ -1,6 +1,6 @@
 {
   "name": "use-geo",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Make use of browser geo location API",
   "author": "termosa",
   "license": "MIT",
